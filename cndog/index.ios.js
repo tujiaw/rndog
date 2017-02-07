@@ -1,53 +1,92 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
+'use strict';
 
-import React, { Component } from 'react';
-import {
+var React = require('react');
+var ReactNative = require('react-native');
+var Icon = require('react-native-vector-icons/Ionicons');
+var {
   AppRegistry,
   StyleSheet,
+  TabBarIOS,
   Text,
-  View
-} from 'react-native';
+  View,
+} = ReactNative;
 
-export default class cndog extends Component {
-  render() {
+var TabBarExample = React.createClass({
+  statics: {
+    title: '<TabBarIOS>',
+    description: 'Tab-based navigation.',
+  },
+
+  displayName: 'TabBarExample',
+
+  getInitialState: function() {
+    return {
+      selectedTab: 'redTab',
+    };
+  },
+
+  _renderContent: function(color: string, pageText: string, num?: number) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          hello, world!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.ios.js
-        </Text>
-        <Text style={styles.instructions}>
-          Press Cmd+R to reload,{'\n'}
-          Cmd+D or shake for dev menu
-        </Text>
+      <View style={[styles.tabContent, {backgroundColor: color}]}>
+        <Text style={styles.tabText}>{pageText}</Text>
+        <Text style={styles.tabText}>{num} re-renders of the {pageText}</Text>
       </View>
     );
-  }
-}
+  },
 
-const styles = StyleSheet.create({
-  container: {
+  render: function() {
+    return (
+      <TabBarIOS
+        tintColor="#ee735c">
+        <Icon.TabBarItem
+          iconName='ios-videocam-outline'
+          selectedIconName='ios-videocam'
+          selected={this.state.selectedTab === 'blueTab'}
+          onPress={() => {
+            this.setState({
+              selectedTab: 'blueTab',
+            });
+          }}>
+          {this._renderContent('#414A8C', 'Blue Tab')}
+        </Icon.TabBarItem>
+        <Icon.TabBarItem
+          iconName='ios-recording-outline'
+          selectedIconName='ios-recording'
+          selected={this.state.selectedTab === 'redTab'}
+          onPress={() => {
+            this.setState({
+              selectedTab: 'redTab',
+            });
+          }}>
+          {this._renderContent('#783E33', 'Red Tab', this.state.notifCount)}
+        </Icon.TabBarItem>
+        <Icon.TabBarItem
+          iconName='ios-more-outline'
+          selectedIconName='ios-more'
+          selected={this.state.selectedTab === 'greenTab'}
+          onPress={() => {
+            this.setState({
+              selectedTab: 'greenTab',
+              presses: this.state.presses + 1
+            });
+          }}>
+          {this._renderContent('#21551C', 'Green Tab', this.state.presses)}
+        </Icon.TabBarItem>
+      </TabBarIOS>
+    );
+  },
+
+});
+
+var styles = StyleSheet.create({
+  tabContent: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  tabText: {
+    color: 'white',
+    margin: 50,
   },
 });
 
-AppRegistry.registerComponent('cndog', () => cndog);
+AppRegistry.registerComponent('cndog', () => TabBarExample);
