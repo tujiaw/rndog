@@ -1,15 +1,44 @@
 'use strict';
 
-var React = require('react');
-var ReactNative = require('react-native');
-var Icon = require('react-native-vector-icons/Ionicons');
-var {
+import React, { Component } from 'react';
+import {
   AppRegistry,
   StyleSheet,
   TabBarIOS,
   Text,
-  View,
-} = ReactNative;
+  View
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+
+class List extends Component {
+  render() { 
+    return (
+      <View style={styles.container}>
+        <Text>列表页面</Text>
+      </View>
+    )
+  }
+}
+
+class Edit extends Component {
+  render() {
+    return (
+      <View style={styles.container}>
+        <Text>制作页面</Text>
+      </View>
+    )
+  }
+}
+
+class Account extends Component {
+  render() {
+    return (
+      <View style={styles.container}>
+        <Text>账户页面</Text>
+      </View>
+    )
+  }
+}
 
 var TabBarExample = React.createClass({
   statics: {
@@ -21,7 +50,7 @@ var TabBarExample = React.createClass({
 
   getInitialState: function() {
     return {
-      selectedTab: 'redTab',
+      selectedTab: 'list',
     };
   },
 
@@ -41,36 +70,35 @@ var TabBarExample = React.createClass({
         <Icon.TabBarItem
           iconName='ios-videocam-outline'
           selectedIconName='ios-videocam'
-          selected={this.state.selectedTab === 'blueTab'}
+          selected={this.state.selectedTab === 'list'}
           onPress={() => {
             this.setState({
-              selectedTab: 'blueTab',
+              selectedTab: 'list',
             });
           }}>
-          {this._renderContent('#414A8C', 'Blue Tab')}
+          <List />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           iconName='ios-recording-outline'
           selectedIconName='ios-recording'
-          selected={this.state.selectedTab === 'redTab'}
+          selected={this.state.selectedTab === 'edit'}
           onPress={() => {
             this.setState({
-              selectedTab: 'redTab',
+              selectedTab: 'edit',
             });
           }}>
-          {this._renderContent('#783E33', 'Red Tab', this.state.notifCount)}
+          <Edit />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           iconName='ios-more-outline'
           selectedIconName='ios-more'
-          selected={this.state.selectedTab === 'greenTab'}
+          selected={this.state.selectedTab === 'account'}
           onPress={() => {
             this.setState({
-              selectedTab: 'greenTab',
-              presses: this.state.presses + 1
+              selectedTab: 'account',
             });
           }}>
-          {this._renderContent('#21551C', 'Green Tab', this.state.presses)}
+          <Account />
         </Icon.TabBarItem>
       </TabBarIOS>
     );
@@ -87,6 +115,12 @@ var styles = StyleSheet.create({
     color: 'white',
     margin: 50,
   },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5fcff',
+  }
 });
 
 AppRegistry.registerComponent('cndog', () => TabBarExample);
