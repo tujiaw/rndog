@@ -8,37 +8,12 @@ import {
   Text,
   View
 } from 'react-native';
+
 import Icon from 'react-native-vector-icons/Ionicons';
 
-class List extends Component {
-  render() { 
-    return (
-      <View style={styles.container}>
-        <Text>列表页面</Text>
-      </View>
-    )
-  }
-}
-
-class Edit extends Component {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text>制作页面</Text>
-      </View>
-    )
-  }
-}
-
-class Account extends Component {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text>账户页面</Text>
-      </View>
-    )
-  }
-}
+import List from './app/creation/index'
+import Account from './app/account/index'
+import Edit from './app/edit/index'
 
 var TabBarExample = React.createClass({
   statics: {
@@ -115,12 +90,6 @@ var styles = StyleSheet.create({
     color: 'white',
     margin: 50,
   },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f5fcff',
-  }
 });
 
 AppRegistry.registerComponent('cndog', () => TabBarExample);
