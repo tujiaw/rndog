@@ -11,10 +11,12 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  AlertIOS
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 import Config from '../common/config';
+import Detail from './detail'
 
 let cacheResults = {
   nextPage: 1,
@@ -22,7 +24,79 @@ let cacheResults = {
   items: [],
 };
 
-const width = Dimensions.get('window').width;
+const width = Dimensions.get('window').width
+const token = 'hello'
+
+class RowItem extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      love: this.props.rowData.love
+    }
+    this._onLove = this._onLove.bind(this)
+  }
+
+  _onLove() {
+    const that = this
+    const newLove = !this.state.love
+    const url = Config.api.love
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: this.props.rowData._id,
+        token: token,
+        love: newLove ? 'yes' : 'no'
+      })
+    })
+    .then((response) => response.json())
+    .then((json) => {
+      if (json.success) {
+        that.setState({ love: newLove })
+      } else {
+        AlertIOS.alert('点赞失败，稍后重试')
+      }
+    })
+    .catch((err) => {
+      console.log(err)
+      AlertIOS.alert('点赞失败，稍后重试')
+    })
+  }
+
+  render() {
+    const rowData = this.props.rowData
+    return (
+      <TouchableHighlight onPress={this.props.onSelect} >
+        <View style={styles.item}>
+          <Text style={styles.title}>
+            {rowData.title}
+          </Text>
+          <Image source={{uri: rowData.thumb}} style={styles.thumb}>
+          <Icon name='ios-play' size={28} style={styles.play} />
+          </Image>
+          <View style={styles.itemFooter}>
+            <View style={styles.handleBox}>
+              <Icon 
+                name={this.state.love ? 'ios-heart' : 'ios-heart-outline'} 
+                size={28} 
+                style={[styles.upIcon, this.state.love ? styles.downIcon : null]}
+                onPress={this._onLove} 
+              />
+              <Text style={styles.handleText} onPress={this._onLove}>喜欢</Text>
+            </View>
+            <View style={styles.handleBox}>
+              <Icon name='ios-chatboxes-outline' size={28} style={styles.commentIcon} />
+              <Text style={styles.handleText}>评论</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    )
+  }
+}
 
 export default class List extends Component {
   constructor(props) {
@@ -40,6 +114,7 @@ export default class List extends Component {
     this._renderRow = this._renderRow.bind(this);
     this._renderFooter = this._renderFooter.bind(this);
     this._onRefresh = this._onRefresh.bind(this);
+    this._loadDetail = this._loadDetail.bind(this);
   }
 
   componentDidMount () {
@@ -47,39 +122,33 @@ export default class List extends Component {
   }
 
   _fetchData(page) {
-
     this.setState(page === 0 ? { isRefreshing: true } : { isLoading: true })
-    const params = `?page=${page}`
-    fetch(Config.api.creation + params)
-      .then((response) => response.json())
-      .then((responseText) => {
-        if (responseText.success) {
-          console.log(responseText.data)
-          let items = cacheResults.items.slice()
-          let nextPage = cacheResults.nextPage
-          if (page === 0) {
-            items = responseText.data.concat(items)
-            this.setState({
-              dataSource: this.state.dataSource.cloneWithRows(items),
-              isRefreshing: false,
-            })
-          } else {
-            items = items.concat(responseText.data)
-            nextPage += 1
-            this.setState({
-              dataSource: this.state.dataSource.cloneWithRows(items),
-              isLoading: false,
-            })
-          }
-          cacheResults.items = items
-          cacheResults.total = responseText.total
-          cacheResults.nextPage = nextPage
+    const url = `${Config.api.creation}?token=${token}&page=${page}`
+    console.log('fetch list:' + url)
+    fetch(url)
+    .then((response) => response.json())
+    .then((responseText) => {
+      if (responseText.success) {
+        let items = cacheResults.items.slice()
+        let nextPage = cacheResults.nextPage
+        if (page === 0) {
+          items = responseText.data.concat(items)
+        } else {
+          items = items.concat(responseText.data)
+          nextPage += 1
         }
-      })
-      .catch((error) => {
+        cacheResults.items = items
+        cacheResults.total = responseText.total
+        cacheResults.nextPage = nextPage
+        console.log(cacheResults.items)
+        this.setState({ dataSource: this.state.dataSource.cloneWithRows(cacheResults.items) })
         this.setState(page === 0 ? { isRefreshing: false } : { isLoading: false })
-        console.warn(error)
-      })
+      }
+    })
+    .catch((error) => {
+      this.setState(page === 0 ? { isRefreshing: false } : { isLoading: false })
+      console.warn(error)
+    })
   }
 
   _hasMore() {
@@ -95,26 +164,11 @@ export default class List extends Component {
 
   _renderRow(rowData) {
     return (
-      <TouchableHighlight>
-        <View style={styles.item}>
-          <Text style={styles.title}>
-            {rowData.title}
-          </Text>
-          <Image source={{uri: rowData.thumb}} style={styles.thumb}>
-           <Icon name='ios-play' size={28} style={styles.play} />
-          </Image>
-          <View style={styles.itemFooter}>
-            <View style={styles.handleBox}>
-              <Icon name='ios-heart-outline' size={28} style={styles.upIcon} />
-              <Text style={styles.handleText}>喜欢</Text>
-            </View>
-            <View style={styles.handleBox}>
-              <Icon name='ios-chatboxes-outline' size={28} style={styles.commentIcon} />
-              <Text style={styles.handleText}>评论</Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
+      <RowItem 
+        id={rowData._id} 
+        onSelect={() => this._loadDetail(rowData)} 
+        rowData={rowData} 
+      />
     )
   }
 
@@ -139,6 +193,16 @@ export default class List extends Component {
       return
     }
     this._fetchData(0)
+  }
+
+  _loadDetail(rowData) {
+    this.props.navigator.push({
+      name: 'detail',
+      component: Detail,
+      params: {
+        data: rowData
+      }
+    })
   }
 
   render() { 
@@ -230,6 +294,10 @@ var styles = StyleSheet.create({
   upIcon: {
     fontSize: 22,
     color: '#333',
+  },
+  downIcon: {
+    fontSize: 22,
+    color: '#ed7b66',
   },
   commentIcon: {
     fontSize: 22,

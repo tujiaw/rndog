@@ -6,7 +6,8 @@ import {
   StyleSheet,
   TabBarIOS,
   Text,
-  View
+  View,
+  Navigator,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -51,7 +52,19 @@ var TabBarExample = React.createClass({
               selectedTab: 'list',
             });
           }}>
-          <List />
+          <Navigator
+            initialRoute={{
+              name: 'list',
+              component: List
+            }}
+            configureScene={(route) => {
+              return Navigator.SceneConfigs.FloatFromRight
+            }}
+            renderScene={(route, navigator) => {
+              var Component = route.component
+              return <Component {...route.params} navigator={navigator} />
+            }}
+          />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           iconName='ios-recording-outline'
@@ -78,7 +91,6 @@ var TabBarExample = React.createClass({
       </TabBarIOS>
     );
   },
-
 });
 
 var styles = StyleSheet.create({
