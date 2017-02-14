@@ -25,7 +25,6 @@ let cacheResults = {
 };
 
 const width = Dimensions.get('window').width
-const token = 'hello'
 
 class RowItem extends Component {
   constructor(props) {
@@ -48,7 +47,7 @@ class RowItem extends Component {
       },
       body: JSON.stringify({
         id: this.props.rowData._id,
-        token: token,
+        token: Config.token,
         love: newLove ? 'yes' : 'no'
       })
     })
@@ -123,7 +122,7 @@ export default class List extends Component {
 
   _fetchData(page) {
     this.setState(page === 0 ? { isRefreshing: true } : { isLoading: true })
-    const url = `${Config.api.creation}?token=${token}&page=${page}`
+    const url = `${Config.api.creation}?token=${Config.token}&page=${page}`
     console.log('fetch list:' + url)
     fetch(url)
     .then((response) => response.json())
