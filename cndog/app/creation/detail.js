@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   Image,
   ListView,
+  TextInput,
+  Modal,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import Video from 'react-native-video'
@@ -32,7 +34,10 @@ export default class Detail extends Component {
       currentTime: 0,
       paused: false,
       videoError: false,
-      dataSource: ds.cloneWithRows([]),
+      dataSource: ds.cloneWithRows([]), // 评论列表
+      // modal
+      animationType: 'none',
+      modalVisible: false,
     }
     this._back = this._back.bind(this)
     this._onLoadStart = this._onLoadStart.bind(this)
@@ -44,7 +49,10 @@ export default class Detail extends Component {
     this._pause = this._pause.bind(this)
     this._resume = this._resume.bind(this)
     this._renderRow = this._renderRow.bind(this)
-    this._renderHeader=this._renderHeader.bind(this)
+    this._renderHeader = this._renderHeader.bind(this)
+    this._commentFocus = this._commentFocus.bind(this)
+    this._closeModal = this._closeModal.bind(this)
+    this._setModalVisible = this._setModalVisible.bind(this)
   }
 
   _back() {
@@ -99,6 +107,20 @@ export default class Detail extends Component {
     this.state.paused && this.setState({ paused: false })
   }
 
+  _commentFocus() {
+    this._setModalVisible(true)
+  }
+
+  _closeModal() {
+    this._setModalVisible(false)
+  }
+
+  _setModalVisible(isVisible) {
+    this.setState({
+      modalVisible: isVisible
+    })
+  }
+
   componentDidMount() {
     const that = this
     const url = `${Config.api.comment}?token=${Config.token}&creation=${this.props.data._id}`
@@ -124,11 +146,24 @@ export default class Detail extends Component {
 
   _renderHeader() {
     return (
-      <View style={styles.infoBox}>
-        <Image style={styles.avatar} source={{uri: this.props.data.author.avatar}} />
-        <View style={styles.descBox}>
-          <Text style={styles.nickname}>{this.props.data.author.nickname}</Text>
-          <Text style={styles.title}>{this.props.data.title}</Text>
+      <View style={styles.listHeader}>
+        <View style={styles.infoBox}>
+          <Image style={styles.avatar} source={{uri: this.props.data.author.avatar}} />
+          <View style={styles.descBox}>
+            <Text style={styles.nickname}>{this.props.data.author.nickname}</Text>
+            <Text style={styles.title}>{this.props.data.title}</Text>
+          </View>
+        </View>
+        <View style={styles.commentInputBox}>
+          <TextInput
+            placeholder='客官来评论一个吧...'
+            style={styles.commentInputContent}
+            multiline={true}
+            onFocus={this._commentFocus}
+          />
+        </View>
+        <View style={styles.commentArea}>
+          <Text style={styles.commentTitle}>精彩评论：</Text>
         </View>
       </View>
     )
@@ -208,6 +243,29 @@ export default class Detail extends Component {
             showsVerticalScrollIndicator={false}
             automaticallyAdjustContentInsets={false}
           />
+          <Modal
+            animationType={'fade'}
+            visible={this.state.modalVisible}
+            onRequestClose={() => this._setModalVisible(false)} >
+            <View style={styles.modalContainer}>
+              <Icon
+                onPress={this._closeModal}
+                name='ios-close-outline'
+                style={styles.closeIcon}
+              />
+              <View style={styles.commentInputBox}>
+                <TextInput
+                  placeholder='客官来评论一个吧...'
+                  style={[styles.commentInputContent, { height: 100 }]}
+                  multiline={true}
+                  defaultValue={this.state.content}
+                  onChangeText={(text) => {
+                    this.setState({ content: text })
+                  }}
+                />
+              </View>
+            </View>
+          </Modal>
       </View>
     )
   }
@@ -336,8 +394,14 @@ var styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  commentBox: {
+  listView: {
     width: width,
+    margin: 10,
+  },
+  listHeader: {
+    flex: 1,
+  },
+  commentBox: {
     flexDirection: 'row',
     marginTop: 2,
   },
@@ -358,5 +422,29 @@ var styles = StyleSheet.create({
   commentContent: {
     color: '#666',
   },
+  commentInputContent: {
+    margin: 10,
+    color: '#333',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    fontSize: 14,
+    height: 70,
+    padding: 8,
+  },
+  commentArea: {
+    marginLeft: 10,
+    marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    paddingTop: 45,
+    backgroundColor: '#fff'
+  },
+  closeIcon: {
+    alignSelf: 'center',
+    fontSize: 30,
+    color: '#f00',
+  }
 });
 
