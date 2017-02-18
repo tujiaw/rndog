@@ -12,9 +12,11 @@ import {
   ListView,
   TextInput,
   Modal,
+  Alert,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import Video from 'react-native-video'
+import Button from 'react-native-button'
 import Config from '../common/config'
 
 const width = Dimensions.get('window').width
@@ -38,6 +40,8 @@ export default class Detail extends Component {
       // modal
       animationType: 'none',
       modalVisible: false,
+      // 评论是否已发出
+      isSending: false,
     }
     this._back = this._back.bind(this)
     this._onLoadStart = this._onLoadStart.bind(this)
@@ -53,6 +57,8 @@ export default class Detail extends Component {
     this._commentFocus = this._commentFocus.bind(this)
     this._closeModal = this._closeModal.bind(this)
     this._setModalVisible = this._setModalVisible.bind(this)
+    this._submit = this._submit.bind(this)
+    this._getComments = this._getComments.bind(this)
   }
 
   _back() {
@@ -121,7 +127,53 @@ export default class Detail extends Component {
     })
   }
 
+  _submit() {
+    if (!this.state.content) {
+      return Alert.alert('留言不能为空!')
+    }
+    if (this.state.isSending) {
+      return Alert.alert('正在评论中!')
+    }
+    const that = this
+    this.setState({
+      isSending: true
+    }, function() {
+      const url = Config.api.comment
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          creation: this.props.data._id,
+          token: Config.token,
+          content: this.state.content
+        })
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          if (json.success) {
+            that.setState({ isSending: false })
+            that._getComments()
+            that._setModalVisible(false)
+            that.setState({ content: ''})
+          } else {
+            AlertIOS.alert('评论失败')
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+          that.setState({ isSending: false })
+        })
+    })
+  }
+
   componentDidMount() {
+    this._getComments()
+  }
+
+  _getComments() {
     const that = this
     const url = `${Config.api.comment}?token=${Config.token}&creation=${this.props.data._id}`
     console.log('fetch comments:' + url)
@@ -264,6 +316,7 @@ export default class Detail extends Component {
                   }}
                 />
               </View>
+              <Button style={styles.submitButton} onPress={this._submit}>评论</Button>
             </View>
           </Modal>
       </View>
@@ -445,6 +498,15 @@ var styles = StyleSheet.create({
     alignSelf: 'center',
     fontSize: 30,
     color: '#f00',
+  },
+  submitButton: {
+    margin: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ee753c',
+    borderRadius: 4,
+    fontSize: 16,
+    color: '#ee753c',
   }
 });
 
