@@ -8,12 +8,14 @@ import {
   Text,
   View,
   Navigator,
+  AsyncStorage,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import List from './app/creation/index'
 import Account from './app/account/index'
+import Login from './app/account/login'
 import Edit from './app/edit/index'
 
 var TabBarExample = React.createClass({
@@ -27,7 +29,31 @@ var TabBarExample = React.createClass({
   getInitialState: function() {
     return {
       selectedTab: 'list',
+      logined: false,
     };
+  },
+
+  componentDidMount: function() {
+    this._asyncAppStatus()
+  },
+
+  _asyncAppStatus: function() {
+    AsyncStorage.getItem('user')
+      .then((data) => {
+        if (data) {
+          const user = JSON.parse(data)
+          if (user && user.token) {
+            this.setState({
+              user: user,
+              logined: true,
+            })
+          } else {
+            this.setState({
+              logined: false,
+            })
+          }
+        }
+      })
   },
 
   _renderContent: function(color: string, pageText: string, num?: number) {
@@ -39,7 +65,23 @@ var TabBarExample = React.createClass({
     );
   },
 
+  _afterLogin: function(user) {
+    const that = this
+    user = JSON.stringify(user)
+    AsyncStorage.setItem('user', user)
+      .then(() => {
+        that.setState({
+          logined: true,
+          user: user
+        })
+      })
+  },
+
   render: function() {
+    if (!this.state.logined) {
+      return <Login afterLogin={this._afterLogin}/>
+    }
+
     return (
       <TabBarIOS
         tintColor="#ee735c">

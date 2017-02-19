@@ -153,7 +153,7 @@ export default class Detail extends Component {
       })
         .then((response) => response.json())
         .then((json) => {
-          if (json.success) {
+          if (json && json.success) {
             that.setState({ isSending: false })
             that._getComments()
             that._setModalVisible(false)
