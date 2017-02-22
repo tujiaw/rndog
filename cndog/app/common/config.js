@@ -7,6 +7,7 @@ module.exports = {
     comment: 'http://rap.taobao.org/mockjsdata/13675/api/comments',
     verify: 'http://rap.taobao.org/mockjsdata/13675/api/u/verify',
     signup: 'http://rap.taobao.org/mockjsdata/13675/api/u/signup',
+    update: 'http://rap.taobao.org/mockjsdata/13675/api/u/update',
   },
   token: 'hello',
   qiniu: {

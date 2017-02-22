@@ -28,6 +28,10 @@ export default class Login extends Component {
     this._showVerifyCode = this._showVerifyCode.bind(this)
   }
 
+  componentWillUnmount() {
+
+  }
+
   _submit() {
     const phoneNumber = this.state.phoneNumber
     const verifyCode = this.state.verifyCode
@@ -148,7 +152,7 @@ export default class Login extends Component {
                         onPress={this._sendVerifyCode}
                         text={'剩余秒数'}
                         endText={'重新获取'}
-                        time={10}
+                        time={60}
                       />
                 }
               </View>

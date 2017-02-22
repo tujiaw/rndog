@@ -25,6 +25,10 @@ export default class CountDown extends Component {
     this._countdown();
   }
 
+  componentWillUnmount() {
+    clearTimeout(this.state.timeid)
+  }
+
   _onPress(){
     if (this.state.disabled) {
       //nothing
@@ -43,13 +47,14 @@ export default class CountDown extends Component {
       var time = that.state.time - 1;
       that.setState({time: time});
       if (time > 0) {
-        setTimeout(timer, 1000);
+        that.setState({ timeid: setTimeout(timer, 1000) })
       } else {
         that.setState({disabled: false});
         that.setState({time: that.props.time ? that.props.time : 60});
       }
     };
-    setTimeout(timer, 1000);
+
+    this.setState({ timeid: setTimeout(timer, 1000) })
   }
 
   render() {
@@ -96,5 +101,3 @@ var styles = StyleSheet.create({
     color: '#fff',
   }
 });
-
-

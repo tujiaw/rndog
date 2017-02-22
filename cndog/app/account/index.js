@@ -15,7 +15,9 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import Button from 'react-native-button';
 
-var ImagePicker = require('react-native-image-picker');
+import Config from '../common/config'
+const ImagePicker = require('react-native-image-picker');
+const request = require('../common/request')
 
 const width = Dimensions.get('window').width
 
@@ -28,7 +30,9 @@ export default class Account extends Component {
     }
     this._pickPhoto = this._pickPhoto.bind(this)
     this._userInfoChanged = this._userInfoChanged.bind(this)
+    this._asyncUser = this._asyncUser.bind(this)
     this._saveInfo = this._saveInfo.bind(this)
+    this._logout = this._logout.bind(this)
   }
 
   componentDidMount() {
@@ -89,8 +93,37 @@ export default class Account extends Component {
     })
   }
 
-  _saveInfo() {
+  _asyncUser(isAvatar) {
+    const that = this
+    const user = this.state.user
+    if (user && user.token) {
+      const url = Config.api.update
+      request.post(url, user)
+        .then((json) => {
+          if (json && json.success) {
+            if (isAvatar) {
+              AlertIOS.alert('头像更新成功')
+            }
+            that.setState({
+              user: json.data
+            }, function () {
+              this.setState({modalVisible: false})
+              AsyncStorage.setItem('user', JSON.stringify(json.data))
+            })
+          }
+        })
+        .catch((err) => {
+          console.log('更新用户信息失败:' + err)
+        })
+    }
+  }
 
+  _saveInfo() {
+    this._asyncUser(false)
+  }
+
+  _logout() {
+    this.props.logout()
   }
 
   render() {
@@ -166,7 +199,7 @@ export default class Account extends Component {
                   this.state.user.gender === 'male' && styles.genderChecked
                 ]}
                 name="ios-paw-outline">
-                男
+                公
               </Icon.Button>
               <View style={styles.genderSpace}></View>
               <Icon.Button
@@ -178,12 +211,13 @@ export default class Account extends Component {
                   this.state.user.gender === 'female' && styles.genderChecked
                 ]}
                 name="ios-paw-outline">
-                女
+                母
               </Icon.Button>
             </View>
-            <Button style={styles.btn} onPress={this._saveInfo}>保存</Button>
+            <Button style={styles.btn} onPress={this._saveInfo}>保存资料</Button>
           </View>
         </Modal>
+        <Button style={styles.btn} onPress={this._logout}>退出登录</Button>
       </View>
     )
   }
