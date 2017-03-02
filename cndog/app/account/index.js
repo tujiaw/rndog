@@ -11,9 +11,12 @@ import {
   AsyncStorage,
   Modal,
   TextInput,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import Button from 'react-native-button';
+  Alert,
+} from 'react-native'
+import Icon from 'react-native-vector-icons/Ionicons'
+import Button from 'react-native-button'
+import * as Progress from 'react-native-progress'
+import uuid from 'uuid'
 
 import Config from '../common/config'
 const ImagePicker = require('react-native-image-picker');
@@ -27,12 +30,16 @@ export default class Account extends Component {
     this.state = {
       user: this.props.user || {},
       modalVisible: false,
+      avatarProgress: 0,
+      avatarUploading: false,
     }
     this._pickPhoto = this._pickPhoto.bind(this)
     this._userInfoChanged = this._userInfoChanged.bind(this)
     this._asyncUser = this._asyncUser.bind(this)
     this._saveInfo = this._saveInfo.bind(this)
     this._logout = this._logout.bind(this)
+    this._getQiniuToken = this._getQiniuToken.bind(this)
+    this._upload = this._upload.bind(this)
   }
 
   componentDidMount() {
@@ -47,6 +54,67 @@ export default class Account extends Component {
           }
         }
       })
+  }
+
+  _getQiniuToken(token, key) {
+    const signatureUrl = config.api.signature
+    return request.post(signatureUrl, {
+      token: token,
+      key: key
+    }).catch((err) => {
+      console.log(err)
+    })
+  }
+
+  _upload(body) {
+    const that = this
+    const xhr = new XMLHttpRequest()
+    const url = Config.api.image
+    this.setState({
+      avatarUploading: true,
+      avatarProgress: 0,
+    })
+    xhr.open('POST', url)
+    xhr.onload = () => {
+      if (xhr.status != 200) {
+        Alert.alert('请求失败！')
+        console.log(xhr.responseText)
+        return
+      }
+      if (!xhr.responseText) {
+        Alert.alert('请求失败！')
+        return
+      }
+      let response
+      try {
+        response = JSON.parse(xhr.responseText)
+      } catch (e) {
+        console.log(e)
+        console.log('parse failed')
+      }
+
+      if (response && response.public_id) {
+        let user = that.state.user
+        user.avatar = 'xxxxx'
+        that.setState({
+          avatarUploading: false,
+          avatarProgress: 0,
+          user: user
+        })
+      }
+    }
+
+    if (xhr.upload) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Number((event.loaded / event.total).toFixed(2))
+          that.setState({
+            avatarProgress: percent
+          })
+        }
+      }
+    }
+    xhr.send(body)
   }
 
   _pickPhoto() {
@@ -65,7 +133,6 @@ export default class Account extends Component {
         path: 'images'
       }
     };
-
     ImagePicker.showImagePicker(options, (response) => {
       console.log('Response = ', response)
       if (response.didCancel) {
@@ -77,11 +144,27 @@ export default class Account extends Component {
         return
       }
 
-      let source = { uri: response.uri }
-      let avatarData = 'data:image/jpeg;base64,' + response.data
-      let user = that.state.user
-      user.avatar = avatarData
-      that.setState({ user: user })
+      const uri = response.uri
+      const avatarData = 'data:image/jpeg;base64,' + response.data
+      const token = this.state.user.token
+      const key = uuid.v4() + '.jpeg'
+      that._getQiniuToken(token, key).then((data) => {
+        if (data && data.success) {
+          const resToken = data.data
+          let body = new FormData()
+          body.append('token', resToken)
+          body.append('key', key)
+          body.append('file', {
+            type: 'image/png',
+            uri: uri,
+            name: key
+          })
+          that._upload(body)
+        }
+      })
+      // let user = that.state.user
+      // user.avatar = avatarData
+      // that.setState({ user: user })
     })
   }
 
@@ -102,7 +185,7 @@ export default class Account extends Component {
         .then((json) => {
           if (json && json.success) {
             if (isAvatar) {
-              AlertIOS.alert('头像更新成功')
+              Alert.alert('头像更新成功')
             }
             that.setState({
               user: json.data
@@ -138,17 +221,33 @@ export default class Account extends Component {
             ? <TouchableOpacity onPress={this._pickPhoto}>
                 <Image source={{uri: this.state.user.avatar}} style={styles.avatarContainer}>
                   <View style={styles.avatarBox}>
-                    <Image source={{uri: this.state.user.avatar}} style={styles.avatar} />
+                    {
+                      this.state.avatarUploading
+                        ? <Progress.Circle
+                        showsText={true}
+                        size={75}
+                        color={'#ee735c'}
+                        progress={this.state.avatarProgress} />
+                        : <Image source={{uri: this.state.user.avatar}} style={styles.avatar} />
+                    }
                   </View>
                   <Text style={styles.avatarTip}>点这里换头像</Text>
                 </Image>
               </TouchableOpacity>
-            : <View style={styles.avatarContainer}>
+            : <TouchableOpacity onPress={this._pickPhoto} style={styles.avatarContainer}>
                 <Text style={styles.avatarTip}>添加狗狗头像</Text>
-                <TouchableOpacity style={styles.avatarBox}>
-                  <Icon name="ios-cloud-upload-outline" style={styles.plusIcon}/>
-                </TouchableOpacity>
-              </View>
+                <View style={styles.avatarBox}>
+                  {
+                    this.state.avatarUploading
+                    ? <Progress.Circle
+                        showsText={true}
+                        size={75}
+                        color={'#ee735c'}
+                        progress={this.state.avatarProgress} />
+                    : <Icon name="ios-cloud-upload-outline" style={styles.plusIcon} />
+                  }
+                </View>
+              </TouchableOpacity>
         }
         <Modal
           animationType={'fade'}

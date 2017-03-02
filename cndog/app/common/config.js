@@ -8,6 +8,8 @@ module.exports = {
     verify: 'http://rap.taobao.org/mockjsdata/13675/api/u/verify',
     signup: 'http://rap.taobao.org/mockjsdata/13675/api/u/signup',
     update: 'http://rap.taobao.org/mockjsdata/13675/api/u/update',
+    image: 'http://127.0.0.1:4433/api/u/image',
+    signature: 'http://rap.taobao.org/mockjs/13675/api/signature'
   },
   token: 'hello',
   qiniu: {

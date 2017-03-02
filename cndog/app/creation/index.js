@@ -11,7 +11,7 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
-  AlertIOS
+  Alert
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -56,12 +56,12 @@ class RowItem extends Component {
       if (json.success) {
         that.setState({ love: newLove })
       } else {
-        AlertIOS.alert('点赞失败，稍后重试')
+        Alert.alert('点赞失败，稍后重试')
       }
     })
     .catch((err) => {
       console.log(err)
-      AlertIOS.alert('点赞失败，稍后重试')
+      Alert.alert('点赞失败，稍后重试')
     })
   }
 

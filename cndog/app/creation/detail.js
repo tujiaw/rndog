@@ -159,7 +159,7 @@ export default class Detail extends Component {
             that._setModalVisible(false)
             that.setState({ content: ''})
           } else {
-            AlertIOS.alert('评论失败')
+            Alert.alert('评论失败')
           }
         })
         .catch((err) => {

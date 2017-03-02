@@ -2,10 +2,21 @@
 
 const mongoose = require('mongoose')
 const User = mongoose.model('User')
+const robot = require('../service/robot')
 
 exports.signature = function *(next) {
-  this.body = {
-    success: true
+  const key = this.query.key
+  if (key) {
+    token = robot.getQiniuToken(key)
+    this.body = {
+      success: true,
+      data: token
+    }
+  } else {
+    this.body = {
+      success: false,
+      err: 'get qiniu key failed!'
+    }
   }
 }
 
